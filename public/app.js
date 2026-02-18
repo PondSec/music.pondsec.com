@@ -81,6 +81,7 @@ function renderEvents(events) {
     article.innerHTML = `
       <h3>${event.title}</h3>
       <p>${normalizeDate(event.date)} · ${event.location || 'Location folgt'}</p>
+      ${event.source === 'spotify' ? '<span class="badge">Spotify Event</span>' : ''}
       ${event.description ? `<p>${event.description}</p>` : ''}
       ${event.ticketUrl ? `<p><a class="btn soft" href="${event.ticketUrl}" target="_blank" rel="noreferrer">Tickets</a></p>` : ''}
     `;
@@ -126,7 +127,7 @@ async function loadMe() {
   if (adminHint) {
     adminHint.textContent = currentUser?.role === 'admin'
       ? `Eingeloggt als ${currentUser.username} (Admin)`
-      : 'Bitte als Admin über Community einloggen.';
+      : 'Admin-Zugang erforderlich.';
   }
 }
 
@@ -140,7 +141,7 @@ async function loadPublicData() {
   if (artistBioEl) artistBioEl.textContent = data.artist.bio || 'LoFi Producer zwischen Nostalgie und Nacht-Vibes.';
 
   if (heroEl && data.artist.image) {
-    heroEl.style.backgroundImage = `linear-gradient(110deg, rgba(255,255,255,.9), rgba(255,255,255,.65)), url('${data.artist.image}')`;
+    heroEl.style.backgroundImage = `linear-gradient(110deg, rgba(5,10,20,.86), rgba(5,10,20,.58)), url('${data.artist.image}')`;
   }
 
   renderReleases(data.releases || [], location.pathname === '/' ? 4 : null);

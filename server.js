@@ -24,9 +24,7 @@ const STATIC_PAGES = {
   '/biography': 'biography.html',
   '/discography': 'discography.html',
   '/events': 'events.html',
-  '/news': 'news.html',
-  '/community': 'community.html',
-  '/admin': 'admin.html'
+  '/news': 'news.html'
 };
 let spotifyCacheExpiresAt = 0;
 
@@ -217,10 +215,36 @@ async function fetchAlbumTracks(album) {
   };
 }
 
+function extractSpotifyEvents(state) {
+  const concertsEntity = state?.entities?.items?.[`spotify:artist:${ARTIST_ID}:concerts`];
+  const concerts = concertsEntity?.concerts?.concerts?.items || [];
+
+  return concerts
+    .map((event) => {
+      const location = [event?.venue?.name, event?.venue?.location?.city, event?.venue?.location?.country]
+        .filter(Boolean)
+        .join(', ');
+
+      return {
+        id: `spotify-event-${event?.id || crypto.randomUUID()}`,
+        source: 'spotify',
+        title: event?.title || event?.displayName || 'Live Event',
+        date: event?.date || event?.dateTime || null,
+        location,
+        description: event?.summary || event?.description || '',
+        ticketUrl: event?.uri || event?.url || null
+      };
+    })
+    .filter((event) => event.date);
+}
+
 async function fetchSpotifyData() {
   if (spotifyCache && Date.now() < spotifyCacheExpiresAt) return spotifyCache;
 
-  const artistState = await fetchSpotifyInitialState(`/artist/${ARTIST_ID}`);
+  const [artistState, concertsState] = await Promise.all([
+    fetchSpotifyInitialState(`/artist/${ARTIST_ID}`),
+    fetchSpotifyInitialState(`/artist/${ARTIST_ID}/concerts`).catch(() => null)
+  ]);
   const artistEntity = extractArtistEntity(artistState);
   if (!artistEntity) throw new Error('Artist data could not be extracted from Spotify page.');
 
@@ -248,6 +272,7 @@ async function fetchSpotifyData() {
     },
     topTracks: allTracks,
     albums: albumsWithCounts,
+    events: concertsState ? extractSpotifyEvents(concertsState) : [],
     fetchedAt: new Date().toISOString()
   };
 
@@ -259,7 +284,8 @@ app.get('/api/public-data', async (req, res) => {
   try {
     const [spotifyData, store] = await Promise.all([fetchSpotifyData(), readStore()]);
     const manualReleases = [...store.customReleases].sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
-    const events = [...store.events].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const manualEvents = [...store.events].map((event) => ({ ...event, source: 'manual' }));
+    const events = [...(spotifyData.events || []), ...manualEvents].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
     const announcements = [...store.announcements].sort((a, b) => {
       if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -384,6 +410,10 @@ app.post('/api/admin/announcements', requireAdmin, async (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get(['/community', '/admin'], (req, res) => {
+  res.redirect('/');
+});
 
 Object.entries(STATIC_PAGES).forEach(([route, file]) => {
   app.get(route, (req, res) => {
