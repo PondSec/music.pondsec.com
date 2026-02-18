@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 A.M. — LoFi Artist</title>
+    <meta
+      name="description"
+      content="Offizielle Artist Website von 404 A.M. mit automatisch geladenen Spotify Releases, Top Tracks und Links zu Apple Music, Instagram und mehr."
+    />
+    <link rel="preconnect" href="https://i.scdn.co" crossorigin />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="overlay"></div>
+      <div class="hero-content container">
+        <p class="kicker">LoFi Producer</p>
+        <h1>404 A.M.</h1>
+        <p class="subtitle">Beats für späte Nächte, ruhige Gedanken und endlose Loops.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://open.spotify.com/intl-de/artist/3H2WBHpu4zsSaAXdIo4gqo" target="_blank" rel="noreferrer">Spotify</a>
+          <a class="btn" href="https://music.apple.com/de/artist/404-a-m/1877548620" target="_blank" rel="noreferrer">Apple Music</a>
+          <a class="btn" href="https://www.instagram.com/404am.music" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card" id="about">
+        <h2>Über mich</h2>
+        <p>
+          Ich bin <strong>404 A.M.</strong> und produziere LoFi Tracks zwischen Melancholie,
+          Nostalgie und chilligen Drums. Diese Seite lädt neue Releases automatisch direkt aus
+          Spotify – inklusive Cover, Albums und Singles.
+        </p>
+      </section>
+
+      <section class="card" id="stats">
+        <h2>Artist Stats</h2>
+        <div class="stats-grid">
+          <div>
+            <span class="label">Follower</span>
+            <strong id="followers">—</strong>
+          </div>
+          <div>
+            <span class="label">Genres</span>
+            <strong id="genres">—</strong>
+          </div>
+          <div>
+            <span class="label">Releases</span>
+            <strong id="releaseCount">—</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-header">
+          <h2>Top Tracks</h2>
+          <a id="spotifyProfileLink" target="_blank" rel="noreferrer">Zum Spotify Profil</a>
+        </div>
+        <ol id="tracks" class="tracks-list"></ol>
+      </section>
+
+      <section class="card">
+        <h2>Alle Releases</h2>
+        <p class="section-intro">
+          Diese Liste wird automatisch aus Spotify geladen. Neue Musik erscheint hier ohne manuelle
+          Änderungen.
+        </p>
+        <div id="albums" class="albums-grid"></div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <p>© <span id="year"></span> 404 A.M.</p>
+        <div class="footer-links">
+          <a href="https://open.spotify.com/intl-de/artist/3H2WBHpu4zsSaAXdIo4gqo" target="_blank" rel="noreferrer">Spotify</a>
+          <a href="https://music.apple.com/de/artist/404-a-m/1877548620" target="_blank" rel="noreferrer">Apple Music</a>
+          <a href="https://www.instagram.com/404am.music" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+      </div>
+    </footer>
+
+    <template id="albumTemplate">
+      <article class="album-card">
+        <img loading="lazy" alt="" />
+        <div class="album-copy">
+          <h3></h3>
+          <p class="meta"></p>
+          <a class="listen-link" target="_blank" rel="noreferrer">Auf Spotify öffnen</a>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
