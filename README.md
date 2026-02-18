@@ -1,15 +1,15 @@
 # music.pondsec.com
 
-Artist-Website für **404 A.M.** mit automatischem Spotify-Sync (Releases, Cover, Top-Tracks).
+Artist-Website für **404 A.M.** mit automatischem Spotify-Sync (Releases, Cover, Tracks) – **ohne Spotify Client ID/Secret**.
 
 ## Features
 
 - Hero + About Bereich für die Artist-Branding-Story
-- Automatisches Laden von Spotify Artist-Daten über die Spotify Web API
+- Automatisches Laden von Spotify-Daten direkt aus den öffentlichen Spotify-Seiten
 - Anzeige von:
-  - Top Tracks
+  - Tracks (automatisch aus Releases)
   - Allen Albums & Singles inkl. Cover
-  - Follower / Genres / Release-Anzahl
+  - Follower / Release-Anzahl
 - Externe Links zu Spotify, Apple Music und Instagram
 
 ## Setup
@@ -20,14 +20,13 @@ Artist-Website für **404 A.M.** mit automatischem Spotify-Sync (Releases, Cover
 npm install
 ```
 
-2. Umgebungsvariablen setzen:
+2. Optional Umgebungsvariablen setzen:
 
 ```bash
-export SPOTIFY_CLIENT_ID="dein_client_id"
-export SPOTIFY_CLIENT_SECRET="dein_client_secret"
-# optional
+# optional (Standard: 3H2WBHpu4zsSaAXdIo4gqo)
 export SPOTIFY_ARTIST_ID="3H2WBHpu4zsSaAXdIo4gqo"
-export SPOTIFY_MARKET="DE"
+# optional (Standard: intl-de)
+export SPOTIFY_LOCALE="intl-de"
 ```
 
 3. Starten:
@@ -38,6 +37,6 @@ npm start
 
 Website läuft dann auf `http://localhost:3000`.
 
-## Spotify API Hinweis
+## Hinweis zur Datenquelle
 
-Für den automatischen Sync wird der **Client Credentials Flow** genutzt. Dadurch bleiben neue Releases automatisch aktuell, ohne manuelle Pflege.
+Die Seite nutzt öffentliche Spotify-Webseiten als Quelle (kein API-Client-Credentials-Flow nötig). Dadurch brauchst du keine Spotify App-Credentials, und neue Releases erscheinen weiterhin automatisch.

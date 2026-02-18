@@ -1,104 +1,113 @@
 const express = require('express');
 const path = require('path');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
+
+const execFileAsync = promisify(execFile);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ARTIST_ID = process.env.SPOTIFY_ARTIST_ID || '3H2WBHpu4zsSaAXdIo4gqo';
-const MARKET = process.env.SPOTIFY_MARKET || 'DE';
-
-let spotifyToken = null;
-let spotifyTokenExpiresAt = 0;
+const LOCALE = process.env.SPOTIFY_LOCALE || 'intl-de';
 
 let artistCache = null;
 let artistCacheExpiresAt = 0;
 
-async function getSpotifyToken() {
-  if (spotifyToken && Date.now() < spotifyTokenExpiresAt) return spotifyToken;
-
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Spotify credentials are missing. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET.');
-  }
-
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials'
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Could not authenticate with Spotify (${response.status}): ${body}`);
-  }
-
-  const data = await response.json();
-  spotifyToken = data.access_token;
-  spotifyTokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000;
-
-  return spotifyToken;
+function spotifyUriToId(uri) {
+  if (!uri) return null;
+  const parts = String(uri).split(':');
+  return parts[parts.length - 1] || null;
 }
 
-async function spotifyRequest(endpoint) {
-  const token = await getSpotifyToken();
-
-  const response = await fetch(`https://api.spotify.com/v1${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Spotify API error (${response.status}) for ${endpoint}: ${body}`);
+function formatReleaseDate(date = {}) {
+  if (date.year && date.month && date.day) {
+    return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
   }
-
-  return response.json();
+  if (date.year && date.month) {
+    return `${date.year}-${String(date.month).padStart(2, '0')}`;
+  }
+  if (date.year) return String(date.year);
+  return null;
 }
 
-async function fetchAllAlbums() {
-  const albums = [];
-  let next = `/artists/${ARTIST_ID}/albums?include_groups=album,single&market=${MARKET}&limit=50`;
-
-  while (next) {
-    const page = await spotifyRequest(next.replace('https://api.spotify.com/v1', ''));
-    albums.push(...page.items);
-    next = page.next;
-  }
-
-  const uniqueById = new Map();
-  albums.forEach((album) => {
-    if (!uniqueById.has(album.id)) uniqueById.set(album.id, album);
+async function fetchSpotifyInitialState(relativePath) {
+  const url = `https://open.spotify.com/${LOCALE}${relativePath}`;
+  const { stdout: html } = await execFileAsync('curl', ['-sL', url], {
+    maxBuffer: 20 * 1024 * 1024
   });
 
-  return [...uniqueById.values()].sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+  if (!html || !html.trim()) {
+    throw new Error(`Spotify page returned an empty response for ${relativePath}`);
+  }
+  const match = html.match(/<script id="initialState" type="text\/plain">([^<]+)<\/script>/);
+
+  if (!match?.[1]) {
+    throw new Error(`Spotify initial state not found for ${relativePath}`);
+  }
+
+  return JSON.parse(Buffer.from(match[1], 'base64').toString('utf8'));
 }
 
-function normalizeAlbum(album) {
+function extractArtistEntity(state) {
+  return state?.entities?.items?.[`spotify:artist:${ARTIST_ID}`] || null;
+}
+
+function extractReleases(artistEntity) {
+  const sections = ['albums', 'singles', 'compilations'];
+  const byId = new Map();
+
+  sections.forEach((section) => {
+    const groups = artistEntity?.discography?.[section]?.items || [];
+    groups.forEach((group) => {
+      const releases = group?.releases?.items || [];
+      releases.forEach((release) => {
+        const releaseId = spotifyUriToId(release?.uri);
+        if (!releaseId || byId.has(releaseId)) return;
+
+        byId.set(releaseId, {
+          id: releaseId,
+          uri: release.uri,
+          name: release.name,
+          type: release.type?.toLowerCase() || section.slice(0, -1),
+          releaseDate: formatReleaseDate(release.date),
+          totalTracks: null,
+          spotifyUrl: `https://open.spotify.com/album/${releaseId}`,
+          image: release.coverArt?.sources?.[0]?.url || null
+        });
+      });
+    });
+  });
+
+  return [...byId.values()].sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+}
+
+function normalizeTrack(track, album) {
+  const trackId = track?.id || spotifyUriToId(track?.uri);
+  if (!trackId) return null;
+
   return {
-    id: album.id,
-    name: album.name,
-    type: album.album_type,
-    releaseDate: album.release_date,
-    totalTracks: album.total_tracks,
-    spotifyUrl: album.external_urls?.spotify,
-    image: album.images?.[0]?.url || null
+    id: trackId,
+    name: track.name,
+    durationMs: track.duration?.totalMilliseconds || null,
+    explicit: track.contentRating?.label === 'EXPLICIT',
+    spotifyUrl: `https://open.spotify.com/track/${trackId}`,
+    previewUrl: track.previews?.audioPreviews?.items?.[0]?.url || null,
+    albumName: album.name
   };
 }
 
-function normalizeTrack(track) {
+async function fetchAlbumTracks(album) {
+  const state = await fetchSpotifyInitialState(`/album/${album.id}`);
+  const albumEntity = state?.entities?.items?.[`spotify:album:${album.id}`];
+  const trackItems = albumEntity?.tracksV2?.items || [];
+
+  const tracks = trackItems
+    .map((item) => normalizeTrack(item?.track, album))
+    .filter(Boolean);
+
   return {
-    id: track.id,
-    name: track.name,
-    durationMs: track.duration_ms,
-    explicit: track.explicit,
-    spotifyUrl: track.external_urls?.spotify,
-    previewUrl: track.preview_url,
-    albumName: track.album?.name || null
+    totalTracks: albumEntity?.tracksV2?.totalCount || tracks.length || album.totalTracks || 0,
+    tracks
   };
 }
 
@@ -108,25 +117,39 @@ app.get('/api/artist-data', async (req, res) => {
       return res.json(artistCache);
     }
 
-    const [artist, topTracks, albums] = await Promise.all([
-      spotifyRequest(`/artists/${ARTIST_ID}`),
-      spotifyRequest(`/artists/${ARTIST_ID}/top-tracks?market=${MARKET}`),
-      fetchAllAlbums()
-    ]);
+    const artistState = await fetchSpotifyInitialState(`/artist/${ARTIST_ID}`);
+    const artistEntity = extractArtistEntity(artistState);
+
+    if (!artistEntity) {
+      throw new Error('Artist data could not be extracted from Spotify page.');
+    }
+
+    const albums = extractReleases(artistEntity);
+    const albumDetails = await Promise.all(albums.map((album) => fetchAlbumTracks(album)));
+
+    const allTracks = albumDetails
+      .flatMap((detail) => detail.tracks)
+      .filter((track, index, arr) => arr.findIndex((entry) => entry.id === track.id) === index);
+
+    const albumsWithCounts = albums.map((album, index) => ({
+      ...album,
+      totalTracks: albumDetails[index]?.totalTracks || album.totalTracks || 0
+    }));
 
     const payload = {
       artist: {
-        id: artist.id,
-        name: artist.name,
-        followers: artist.followers?.total || 0,
-        monthlyListenersNote: 'Spotify API does not provide monthly listeners directly.',
-        genres: artist.genres || [],
-        image: artist.images?.[0]?.url || null,
-        spotifyUrl: artist.external_urls?.spotify
+        id: ARTIST_ID,
+        name: artistEntity?.profile?.name || '404 A.M.',
+        followers: artistEntity?.stats?.followers || 0,
+        monthlyListenersNote: 'Public Spotify pages do not reliably expose monthly listeners.',
+        genres: [],
+        image: artistEntity?.visuals?.avatarImage?.sources?.[0]?.url || null,
+        spotifyUrl: `https://open.spotify.com/artist/${ARTIST_ID}`
       },
-      topTracks: (topTracks.tracks || []).map(normalizeTrack),
-      albums: albums.map(normalizeAlbum),
-      fetchedAt: new Date().toISOString()
+      topTracks: allTracks.slice(0, 10),
+      albums: albumsWithCounts,
+      fetchedAt: new Date().toISOString(),
+      source: 'spotify-public-page'
     };
 
     artistCache = payload;
