@@ -1,19 +1,31 @@
 # music.pondsec.com
 
-Moderne Artist-Website für **404 A.M.** mit Spotify-Auto-Sync, Accounts und Admin-Studio.
+Mehrseitige, helle und moderne Artist-Website für **404 A.M.** mit Spotify-Auto-Sync, Accounts und Admin-Studio.
 
-## Neu im Design
+## Neue Struktur (kein One-Pager mehr)
 
-- Layout jetzt deutlich näher an einer echten Artist-Page (großer Hero, dunkler Editorial-Look, klare Discography-Sections)
-- Hero verwendet ein echtes Foto als Haupt-Background
-- kompaktere, hochwertigere Content-Cards statt überladener Grid-Optik
+Top-Navigation führt jetzt auf **eigene Seiten**:
+
+- `/` Home
+- `/biography`
+- `/discography`
+- `/events`
+- `/news`
+- `/community` (Login/Register)
+- `/admin` (Admin Studio)
+
+## Design-Richtung
+
+- helles, offenes, modernes UI mit klaren Kontrasten
+- künstlerische Editorial-Hero-Optik
+- Komponenten-Stil inspiriert von modernen UI-Pattern (u. a. ähnlich zu ReactBits-Landing/Card-Ansätzen)
 
 ## Features
 
-- Spotify Sync ohne Client-ID/Secret (öffentliche Spotify-Seiten)
+- Spotify Sync ohne Client-ID/Secret (über öffentliche Spotify-Seiten)
 - Register / Login / Logout
 - Admin-Panel für manuelle Releases, Events, Announcements
-- Zusammenführung von Spotify-Releases + manuell gepflegtem Content
+- Mischung aus Spotify-Releases + manuell gepflegtem Content
 
 ## Setup
 
@@ -29,14 +41,11 @@ export SPOTIFY_ARTIST_ID="3H2WBHpu4zsSaAXdIo4gqo"
 export SPOTIFY_LOCALE="intl-de"
 ```
 
-## Dein eigenes Hintergrundbild
+## Eigenes Hero-Bild
 
-Damit dein eigenes Bild im Hero genutzt wird:
+Lege dein Bild als `public/artist-background.jpg` ab.
 
-1. Datei als `public/artist-background.jpg` ablegen.
-2. Seite neu laden.
-
-Wenn die Datei fehlt, wird automatisch das Spotify-Artist-Bild als Hero-Hintergrund verwendet.
+Wenn die Datei nicht vorhanden ist, wird automatisch das Spotify-Artist-Bild als Fallback genutzt.
 
 ## Admin Zugang (beim ersten Start)
 
@@ -45,4 +54,4 @@ Beim ersten Start wird `data/store.json` erstellt.
 - Username: `admin`
 - Passwort: `change-me-404am`
 
-> Bitte Passwort direkt ändern, bevor du öffentlich live gehst.
+> Passwort bitte direkt ändern, bevor die Seite öffentlich live geht.

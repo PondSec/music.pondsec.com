@@ -18,6 +18,16 @@ const SESSION_TTL = 1000 * 60 * 60 * 24 * 7;
 
 const sessions = new Map();
 let spotifyCache = null;
+
+const STATIC_PAGES = {
+  '/': 'index.html',
+  '/biography': 'biography.html',
+  '/discography': 'discography.html',
+  '/events': 'events.html',
+  '/news': 'news.html',
+  '/community': 'community.html',
+  '/admin': 'admin.html'
+};
 let spotifyCacheExpiresAt = 0;
 
 app.use(express.json());
@@ -375,8 +385,14 @@ app.post('/api/admin/announcements', requireAdmin, async (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+Object.entries(STATIC_PAGES).forEach(([route, file]) => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', file));
+  });
+});
+
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  res.redirect('/');
 });
 
 app.listen(PORT, () => {
