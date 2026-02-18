@@ -3,110 +3,115 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 A.M. — Official Artist Site</title>
-    <meta name="description" content="Official website von 404 A.M. – Releases, Events, News und Community-Account." />
+    <title>404 A.M. — Official Artist Website</title>
+    <meta name="description" content="Official 404 A.M. Artist Website mit Releases, Events, News und Community." />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
+    <div class="page-wrap">
+      <header class="site-header">
+        <a class="brand" href="#">404 A.M.</a>
+        <nav class="site-nav">
+          <a href="#bio">Biography</a>
+          <a href="#discography">Discography</a>
+          <a href="#events">Events</a>
+          <a href="#news">News</a>
+        </nav>
+        <div class="header-actions">
+          <button id="openAuth" class="btn btn-outline">Login / Register</button>
+          <button id="logoutBtn" class="btn btn-outline hidden">Logout</button>
+        </div>
+      </header>
 
-    <header class="topbar container">
-      <a class="logo" href="#">404 A.M.</a>
-      <nav>
-        <a href="#releases">Releases</a>
-        <a href="#events">Events</a>
-        <a href="#news">News</a>
-      </nav>
-      <div class="topbar-actions">
-        <button id="openAuth" class="btn ghost">Login / Register</button>
-        <button id="logoutBtn" class="btn ghost hidden">Logout</button>
-      </div>
-    </header>
-
-    <main>
-      <section class="hero container">
-        <div class="hero-copy">
-          <p class="eyebrow">LoFi / Nightcore / Chill Beats</p>
-          <h1>404 A.M.</h1>
-          <p class="hero-text">
-            Eine echte Artist-Experience: automatisch synchronisierte Spotify-Releases,
-            exklusive News, Events und eine Community für alle, die nachts Musik fühlen.
-          </p>
-          <div class="hero-cta">
-            <a class="btn primary" href="https://open.spotify.com/artist/3H2WBHpu4zsSaAXdIo4gqo" target="_blank" rel="noreferrer">Spotify</a>
-            <a class="btn" href="https://music.apple.com/de/artist/404-a-m/1877548620" target="_blank" rel="noreferrer">Apple Music</a>
-            <a class="btn" href="https://www.instagram.com/404am.music" target="_blank" rel="noreferrer">Instagram</a>
+      <main>
+        <section class="hero" id="bio">
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <p class="hero-kicker">LoFi Artist • Producer</p>
+            <h1>404 A.M.</h1>
+            <p class="hero-subtitle">
+              Nights, nostalgia and warm tape textures. Official home for music,
+              announcements and upcoming shows.
+            </p>
+            <div class="hero-buttons">
+              <a class="btn btn-primary" href="https://open.spotify.com/artist/3H2WBHpu4zsSaAXdIo4gqo" target="_blank" rel="noreferrer">Listen on Spotify</a>
+              <a class="btn" href="https://music.apple.com/de/artist/404-a-m/1877548620" target="_blank" rel="noreferrer">Apple Music</a>
+              <a class="btn" href="https://www.instagram.com/404am.music" target="_blank" rel="noreferrer">Instagram</a>
+            </div>
+            <div class="hero-stats">
+              <article><span>Follower</span><strong id="followers">—</strong></article>
+              <article><span>Releases</span><strong id="releaseCount">—</strong></article>
+              <article><span>Tracks</span><strong id="trackCount">—</strong></article>
+            </div>
           </div>
-        </div>
-        <div class="hero-image-wrap">
-          <img id="artistImage" class="hero-image" alt="404 A.M. Portrait" />
-        </div>
-      </section>
+        </section>
 
-      <section class="container grid-stats">
-        <article class="glass stat"><span>Follower</span><strong id="followers">—</strong></article>
-        <article class="glass stat"><span>Releases</span><strong id="releaseCount">—</strong></article>
-        <article class="glass stat"><span>Tracks</span><strong id="trackCount">—</strong></article>
-      </section>
+        <section id="discography" class="section">
+          <div class="section-title-row">
+            <h2>Latest Releases</h2>
+          </div>
+          <div id="releasesGrid" class="release-grid"></div>
+        </section>
 
-      <section id="news" class="container content-block">
-        <div class="section-head"><h2>Announcements</h2></div>
-        <div id="announcements" class="news-list"></div>
-      </section>
+        <section class="section">
+          <div class="section-title-row">
+            <h2>Featured Tracks</h2>
+          </div>
+          <ol id="tracks" class="track-list"></ol>
+        </section>
 
-      <section id="releases" class="container content-block">
-        <div class="section-head"><h2>Releases</h2></div>
-        <div id="releasesGrid" class="release-grid"></div>
-      </section>
+        <section id="events" class="section">
+          <div class="section-title-row">
+            <h2>Events</h2>
+          </div>
+          <div id="eventsList" class="panel-list"></div>
+        </section>
 
-      <section class="container content-block">
-        <div class="section-head"><h2>Featured Tracks</h2></div>
-        <ol id="tracks" class="track-list"></ol>
-      </section>
+        <section id="news" class="section">
+          <div class="section-title-row">
+            <h2>Announcements</h2>
+          </div>
+          <div id="announcements" class="panel-list"></div>
+        </section>
 
-      <section id="events" class="container content-block">
-        <div class="section-head"><h2>Events</h2></div>
-        <div id="eventsList" class="events-list"></div>
-      </section>
+        <section id="adminPanel" class="section hidden">
+          <div class="section-title-row">
+            <h2>Admin Studio</h2>
+            <p>Releases, Events und News manuell verwalten.</p>
+          </div>
+          <div class="admin-grid">
+            <form id="releaseForm" class="panel form-card">
+              <h3>Release hinzufügen</h3>
+              <input name="name" placeholder="Release Name" required />
+              <input name="releaseDate" type="date" required />
+              <input name="type" placeholder="single / album" />
+              <input name="spotifyUrl" placeholder="Spotify URL (optional)" />
+              <input name="image" placeholder="Cover URL (optional)" />
+              <input name="totalTracks" type="number" min="0" placeholder="Tracks" />
+              <button class="btn btn-primary" type="submit">Speichern</button>
+            </form>
 
-      <section id="adminPanel" class="container content-block hidden">
-        <div class="section-head">
-          <h2>Admin Studio</h2>
-          <p class="small">Releases, Events und News manuell hinzufügen.</p>
-        </div>
-        <div class="admin-grid">
-          <form id="releaseForm" class="glass form-card">
-            <h3>Release hinzufügen</h3>
-            <input name="name" placeholder="Release Name" required />
-            <input name="releaseDate" type="date" required />
-            <input name="type" placeholder="single / album" />
-            <input name="spotifyUrl" placeholder="Spotify URL (optional)" />
-            <input name="image" placeholder="Cover URL (optional)" />
-            <input name="totalTracks" type="number" min="0" placeholder="Tracks" />
-            <button class="btn primary" type="submit">Speichern</button>
-          </form>
+            <form id="eventForm" class="panel form-card">
+              <h3>Event hinzufügen</h3>
+              <input name="title" placeholder="Event Titel" required />
+              <input name="date" type="datetime-local" required />
+              <input name="location" placeholder="Location" />
+              <input name="ticketUrl" placeholder="Ticket URL" />
+              <textarea name="description" placeholder="Beschreibung"></textarea>
+              <button class="btn btn-primary" type="submit">Speichern</button>
+            </form>
 
-          <form id="eventForm" class="glass form-card">
-            <h3>Event hinzufügen</h3>
-            <input name="title" placeholder="Event Titel" required />
-            <input name="date" type="datetime-local" required />
-            <input name="location" placeholder="Location" />
-            <input name="ticketUrl" placeholder="Ticket URL" />
-            <textarea name="description" placeholder="Beschreibung"></textarea>
-            <button class="btn primary" type="submit">Speichern</button>
-          </form>
-
-          <form id="announcementForm" class="glass form-card">
-            <h3>Announcement</h3>
-            <input name="title" placeholder="Titel" required />
-            <textarea name="content" placeholder="Text" required></textarea>
-            <label class="check"><input name="pinned" type="checkbox" /> Pinnen</label>
-            <button class="btn primary" type="submit">Veröffentlichen</button>
-          </form>
-        </div>
-      </section>
-    </main>
+            <form id="announcementForm" class="panel form-card">
+              <h3>Announcement</h3>
+              <input name="title" placeholder="Titel" required />
+              <textarea name="content" placeholder="Text" required></textarea>
+              <label class="check"><input name="pinned" type="checkbox" /> Pinnen</label>
+              <button class="btn btn-primary" type="submit">Veröffentlichen</button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
 
     <div id="authModal" class="modal hidden">
       <div class="modal-card">
@@ -118,13 +123,13 @@
         <form id="loginForm" class="auth-form">
           <input name="login" placeholder="Username oder E-Mail" required />
           <input name="password" type="password" placeholder="Passwort" required />
-          <button class="btn primary" type="submit">Einloggen</button>
+          <button class="btn btn-primary" type="submit">Einloggen</button>
         </form>
         <form id="registerForm" class="auth-form hidden">
           <input name="username" placeholder="Username" required />
           <input name="email" type="email" placeholder="E-Mail" required />
           <input name="password" type="password" placeholder="Passwort (min. 8)" required />
-          <button class="btn primary" type="submit">Konto erstellen</button>
+          <button class="btn btn-primary" type="submit">Konto erstellen</button>
         </form>
       </div>
     </div>
