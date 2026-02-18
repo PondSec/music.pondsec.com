@@ -2,11 +2,11 @@ const releasesGrid = document.getElementById('releasesGrid');
 const tracksList = document.getElementById('tracks');
 const eventsList = document.getElementById('eventsList');
 const announcementsEl = document.getElementById('announcements');
+const heroEl = document.querySelector('.hero');
 
 const followersEl = document.getElementById('followers');
 const releaseCountEl = document.getElementById('releaseCount');
 const trackCountEl = document.getElementById('trackCount');
-const artistImage = document.getElementById('artistImage');
 
 const adminPanel = document.getElementById('adminPanel');
 const openAuth = document.getElementById('openAuth');
@@ -43,13 +43,13 @@ function normalizeDate(dateStr) {
 function renderAnnouncements(items) {
   announcementsEl.innerHTML = '';
   if (!items.length) {
-    announcementsEl.innerHTML = '<article class="glass news-item"><p>Noch keine Ankündigungen.</p></article>';
+    announcementsEl.innerHTML = '<article class="panel news-item"><p>Noch keine Ankündigungen.</p></article>';
     return;
   }
 
   items.forEach((item) => {
     const article = document.createElement('article');
-    article.className = 'glass news-item';
+    article.className = 'panel news-item';
     article.innerHTML = `
       ${item.pinned ? '<span class="pinned">Pinned</span>' : ''}
       <h3>${item.title}</h3>
@@ -64,7 +64,7 @@ function renderReleases(releases) {
   releasesGrid.innerHTML = '';
   releases.forEach((release) => {
     const card = document.createElement('article');
-    card.className = 'glass release-card';
+    card.className = 'panel release-card';
     card.innerHTML = `
       <img class="release-cover" src="${release.image || ''}" alt="${release.name} Cover" loading="lazy" />
       <div class="release-body">
@@ -89,13 +89,13 @@ function renderTracks(tracks) {
 function renderEvents(events) {
   eventsList.innerHTML = '';
   if (!events.length) {
-    eventsList.innerHTML = '<article class="glass event-item"><p>Noch keine Events angekündigt.</p></article>';
+    eventsList.innerHTML = '<article class="panel event-item"><p>Noch keine Events angekündigt.</p></article>';
     return;
   }
 
   events.forEach((event) => {
     const article = document.createElement('article');
-    article.className = 'glass event-item';
+    article.className = 'panel event-item';
     article.innerHTML = `
       <h3>${event.title}</h3>
       <p>${normalizeDate(event.date)} · ${event.location || 'Location folgt'}</p>
@@ -129,7 +129,9 @@ async function loadPublicData() {
   followersEl.textContent = formatFollowers(data.artist.followers);
   releaseCountEl.textContent = String(data.releases.length);
   trackCountEl.textContent = String(data.topTracks.length);
-  artistImage.src = data.artist.image || '';
+  if (data.artist.image) {
+    heroEl.style.backgroundImage = `linear-gradient(100deg, rgba(2, 3, 8, 0.9) 0%, rgba(2, 3, 8, 0.58) 50%, rgba(2, 3, 8, 0.88) 100%), url('${data.artist.image}')`;
+  }
 
   renderAnnouncements(data.announcements || []);
   renderReleases(data.releases || []);

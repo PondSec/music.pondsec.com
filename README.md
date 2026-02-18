@@ -1,17 +1,19 @@
 # music.pondsec.com
 
-Moderne Artist-Website für **404 A.M.** mit automatischem Spotify-Sync, Community-Accounts und Admin-Studio.
+Moderne Artist-Website für **404 A.M.** mit Spotify-Auto-Sync, Accounts und Admin-Studio.
 
-## Was jetzt drin ist
+## Neu im Design
 
-- **echtes Artist-Look & Feel** (hero, glassmorphism, große Visuals, klare Sektionen)
-- **automatischer Spotify-Sync ohne Client-ID/Secret** (aus öffentlichen Spotify-Seiten)
-- **User-Accounts**: Registrierung + Login
-- **Admin-Bereich** zum manuellen Ergänzen von:
-  - Releases
-  - Events
-  - Announcements
-- Mix aus **Spotify-Releases + manuell gepflegtem Content**
+- Layout jetzt deutlich näher an einer echten Artist-Page (großer Hero, dunkler Editorial-Look, klare Discography-Sections)
+- Hero verwendet ein echtes Foto als Haupt-Background
+- kompaktere, hochwertigere Content-Cards statt überladener Grid-Optik
+
+## Features
+
+- Spotify Sync ohne Client-ID/Secret (öffentliche Spotify-Seiten)
+- Register / Login / Logout
+- Admin-Panel für manuelle Releases, Events, Announcements
+- Zusammenführung von Spotify-Releases + manuell gepflegtem Content
 
 ## Setup
 
@@ -27,24 +29,20 @@ export SPOTIFY_ARTIST_ID="3H2WBHpu4zsSaAXdIo4gqo"
 export SPOTIFY_LOCALE="intl-de"
 ```
 
+## Dein eigenes Hintergrundbild
+
+Damit dein eigenes Bild im Hero genutzt wird:
+
+1. Datei als `public/artist-background.jpg` ablegen.
+2. Seite neu laden.
+
+Wenn die Datei fehlt, wird automatisch das Spotify-Artist-Bild als Hero-Hintergrund verwendet.
+
 ## Admin Zugang (beim ersten Start)
 
-Beim ersten Start wird automatisch eine lokale Datenbank-Datei unter `data/store.json` erstellt.
-
-Default-Admin:
+Beim ersten Start wird `data/store.json` erstellt.
 
 - Username: `admin`
 - Passwort: `change-me-404am`
 
-> Wichtig: Bitte direkt einloggen und Passwort in der Datei `data/store.json` ändern (oder neuen Admin-User anlegen), bevor du live gehst.
-
-## API Endpoints
-
-- `GET /api/public-data` – Artistdaten, Releases, Tracks, Events, Announcements
-- `GET /api/me` – Session/User Status
-- `POST /api/register` – Account erstellen
-- `POST /api/login` – Login
-- `POST /api/logout` – Logout
-- `POST /api/admin/releases` – manueller Release (Admin)
-- `POST /api/admin/events` – Event anlegen (Admin)
-- `POST /api/admin/announcements` – Announcement posten (Admin)
+> Bitte Passwort direkt ändern, bevor du öffentlich live gehst.
