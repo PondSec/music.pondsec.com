@@ -437,3 +437,48 @@ h1 {
 
   .auth-layout { grid-template-columns: 1fr; }
 }
+
+.bio-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 0.9rem;
+  padding: 0 1rem 1rem;
+}
+
+.bio-main p {
+  font-size: 1.03rem;
+  line-height: 1.85;
+}
+
+.bio-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.bio-stats li {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bio-stats span {
+  color: var(--muted);
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+}
+
+.bio-stats strong {
+  font-size: 1.35rem;
+}
+
+@media (max-width: 900px) {
+  .bio-layout {
+    grid-template-columns: 1fr;
+  }
+}

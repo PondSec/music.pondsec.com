@@ -11,6 +11,10 @@ const releaseCountEl = $('releaseCount');
 const trackCountEl = $('trackCount');
 const artistNameEl = $('artistName');
 const artistBioEl = $('artistBio');
+const bioFollowersEl = $('bioFollowers');
+const bioReleasesEl = $('bioReleases');
+const bioTracksEl = $('bioTracks');
+const bioTimelineEl = $('bioTimeline');
 
 const loginForm = $('loginForm');
 const registerForm = $('registerForm');
@@ -63,7 +67,7 @@ function renderTracks(tracks) {
   tracksList.innerHTML = '';
   tracks.forEach((track) => {
     const li = document.createElement('li');
-    li.innerHTML = `<a href="${track.spotifyUrl}" target="_blank" rel="noreferrer">${track.name} — ${track.albumName || 'Release'}</a>`;
+    li.innerHTML = `<a href="${track.spotifyUrl}" target="_blank" rel="noreferrer">${track.name} — ${track.albumName || 'Release'}</a> <span class="meta">${normalizeDate(track.albumReleaseDate)}</span>`;
     tracksList.appendChild(li);
   });
 }
@@ -101,12 +105,55 @@ function renderAnnouncements(items) {
     article.className = 'feed-item';
     article.innerHTML = `
       ${item.pinned ? '<span class="badge">Pinned</span>' : ''}
+      ${item.source ? `<span class="badge">${item.source.replace('auto-', '').toUpperCase()}</span>` : ''}
       <h3>${item.title}</h3>
       <p>${item.content}</p>
+      ${item.link ? `<p><a class=\"btn soft\" href=\"${item.link}\" target=\"_blank\" rel=\"noreferrer\">Öffnen</a></p>` : ''}
       <p class="meta">${normalizeDate(item.createdAt)}</p>
     `;
     announcementsEl.appendChild(article);
   });
+}
+
+
+function renderBioTimeline(data) {
+  if (!bioTimelineEl) return;
+  const timeline = [];
+
+  const newestRelease = (data.releases || [])[0];
+  if (newestRelease) {
+    timeline.push({
+      title: `Neuester Release: ${newestRelease.name}`,
+      content: `${(newestRelease.type || 'release').toUpperCase()} · ${newestRelease.totalTracks || 0} Tracks`,
+      date: newestRelease.releaseDate
+    });
+  }
+
+  const nextEvent = (data.events || []).find((event) => new Date(event.date || 0).getTime() >= Date.now());
+  if (nextEvent) {
+    timeline.push({
+      title: `Nächster Auftritt: ${nextEvent.title}`,
+      content: `${nextEvent.location || 'Location folgt'}`,
+      date: nextEvent.date
+    });
+  }
+
+  const firstTrack = (data.topTracks || [])[0];
+  if (firstTrack) {
+    timeline.push({
+      title: `Track im Fokus: ${firstTrack.name}`,
+      content: `${firstTrack.albumName || 'Release'} · ${normalizeDate(firstTrack.albumReleaseDate)}`,
+      date: firstTrack.albumReleaseDate
+    });
+  }
+
+  bioTimelineEl.innerHTML = timeline.map((item) => `
+    <article class="feed-item">
+      <h3>${item.title}</h3>
+      <p>${item.content}</p>
+      <p class="meta">${normalizeDate(item.date)}</p>
+    </article>
+  `).join('') || '<article class="feed-item"><p>Mehr Story-Elemente folgen bald.</p></article>';
 }
 
 async function fetchJSON(url, options = {}) {
@@ -139,6 +186,9 @@ async function loadPublicData() {
   if (trackCountEl) trackCountEl.textContent = String(data.topTracks.length);
   if (artistNameEl) artistNameEl.textContent = data.artist.name;
   if (artistBioEl) artistBioEl.textContent = data.artist.bio || 'LoFi Producer zwischen Nostalgie und Nacht-Vibes.';
+  if (bioFollowersEl) bioFollowersEl.textContent = formatFollowers(data.artist.followers);
+  if (bioReleasesEl) bioReleasesEl.textContent = String((data.releases || []).length);
+  if (bioTracksEl) bioTracksEl.textContent = String((data.topTracks || []).length);
 
   if (heroEl && data.artist.image) {
     heroEl.style.backgroundImage = `linear-gradient(110deg, rgba(5,10,20,.86), rgba(5,10,20,.58)), url('${data.artist.image}')`;
@@ -147,7 +197,8 @@ async function loadPublicData() {
   renderReleases(data.releases || [], location.pathname === '/' ? 4 : null);
   renderTracks(data.topTracks || []);
   renderEvents(data.events || []);
-  renderAnnouncements(data.announcements || []);
+  renderAnnouncements((data.automaticNews && data.automaticNews.length ? data.automaticNews : data.announcements) || []);
+  renderBioTimeline(data);
 }
 
 async function handleLogin(event) {
