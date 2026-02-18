@@ -1,42 +1,50 @@
 # music.pondsec.com
 
-Artist-Website für **404 A.M.** mit automatischem Spotify-Sync (Releases, Cover, Tracks) – **ohne Spotify Client ID/Secret**.
+Moderne Artist-Website für **404 A.M.** mit automatischem Spotify-Sync, Community-Accounts und Admin-Studio.
 
-## Features
+## Was jetzt drin ist
 
-- Hero + About Bereich für die Artist-Branding-Story
-- Automatisches Laden von Spotify-Daten direkt aus den öffentlichen Spotify-Seiten
-- Anzeige von:
-  - Tracks (automatisch aus Releases)
-  - Allen Albums & Singles inkl. Cover
-  - Follower / Release-Anzahl
-- Externe Links zu Spotify, Apple Music und Instagram
+- **echtes Artist-Look & Feel** (hero, glassmorphism, große Visuals, klare Sektionen)
+- **automatischer Spotify-Sync ohne Client-ID/Secret** (aus öffentlichen Spotify-Seiten)
+- **User-Accounts**: Registrierung + Login
+- **Admin-Bereich** zum manuellen Ergänzen von:
+  - Releases
+  - Events
+  - Announcements
+- Mix aus **Spotify-Releases + manuell gepflegtem Content**
 
 ## Setup
 
-1. Abhängigkeiten installieren:
-
 ```bash
 npm install
-```
-
-2. Optional Umgebungsvariablen setzen:
-
-```bash
-# optional (Standard: 3H2WBHpu4zsSaAXdIo4gqo)
-export SPOTIFY_ARTIST_ID="3H2WBHpu4zsSaAXdIo4gqo"
-# optional (Standard: intl-de)
-export SPOTIFY_LOCALE="intl-de"
-```
-
-3. Starten:
-
-```bash
 npm start
 ```
 
-Website läuft dann auf `http://localhost:3000`.
+Optional:
 
-## Hinweis zur Datenquelle
+```bash
+export SPOTIFY_ARTIST_ID="3H2WBHpu4zsSaAXdIo4gqo"
+export SPOTIFY_LOCALE="intl-de"
+```
 
-Die Seite nutzt öffentliche Spotify-Webseiten als Quelle (kein API-Client-Credentials-Flow nötig). Dadurch brauchst du keine Spotify App-Credentials, und neue Releases erscheinen weiterhin automatisch.
+## Admin Zugang (beim ersten Start)
+
+Beim ersten Start wird automatisch eine lokale Datenbank-Datei unter `data/store.json` erstellt.
+
+Default-Admin:
+
+- Username: `admin`
+- Passwort: `change-me-404am`
+
+> Wichtig: Bitte direkt einloggen und Passwort in der Datei `data/store.json` ändern (oder neuen Admin-User anlegen), bevor du live gehst.
+
+## API Endpoints
+
+- `GET /api/public-data` – Artistdaten, Releases, Tracks, Events, Announcements
+- `GET /api/me` – Session/User Status
+- `POST /api/register` – Account erstellen
+- `POST /api/login` – Login
+- `POST /api/logout` – Logout
+- `POST /api/admin/releases` – manueller Release (Admin)
+- `POST /api/admin/events` – Event anlegen (Admin)
+- `POST /api/admin/announcements` – Announcement posten (Admin)
