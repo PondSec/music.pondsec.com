@@ -1,3 +1,10 @@
 <!doctype html><html lang="de"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>404 A.M. — Biography</title><link rel="stylesheet" href="/styles.css"/></head><body>
-<header class="site-header"><div class="container header-inner"><a class="brand" href="/">404 A.M.</a><nav class="site-nav"><a href="/">Home</a><a class="active" href="/biography">Biography</a><a href="/discography">Discography</a><a href="/events">Events</a><a href="/news">News</a><a href="/community">Community</a><a href="/admin">Admin</a></nav><div class="header-actions"><a class="btn soft" href="/community">Login</a><button id="logoutBtn" class="btn hidden">Logout</button></div></div></header>
-<main class="container"><section class="page-section panel"><div class="panel-head"><h2>Biography</h2><p>About 404 A.M.</p></div><div class="feed"><article class="feed-item"><h3 id="artistName">404 A.M.</h3><p id="artistBio">Loading biography…</p></article></div></section></main><div id="toast" class="toast hidden"></div><script src="/app.js" defer></script></body></html>
+<header class="site-header"><div class="container header-inner"><a class="brand" href="/">404 A.M.</a><nav class="site-nav"><a href="/">Home</a><a class="active" href="/biography">Biography</a><a href="/discography">Discography</a><a href="/events">Events</a><a href="/news">News</a></nav><div class="header-actions"></div></div></header>
+<main class="container">
+<section class="page-section panel bio-hero"><div class="panel-head"><h2>Biography</h2><p>Wer steckt hinter 404 A.M.?</p></div>
+<div class="bio-layout">
+<article class="feed-item bio-main"><h3 id="artistName">404 A.M.</h3><p id="artistBio">Loading biography…</p></article>
+<aside class="feed-item bio-side"><h3>Artist Snapshot</h3><ul class="bio-stats"><li><span>Follower</span><strong id="bioFollowers">—</strong></li><li><span>Releases</span><strong id="bioReleases">—</strong></li><li><span>Top Tracks</span><strong id="bioTracks">—</strong></li></ul></aside>
+</div></section>
+<section class="page-section panel"><div class="panel-head"><h2>Creative Journey</h2><p>Sound, Story, Momentum</p></div><div id="bioTimeline" class="feed"></div></section>
+</main><div id="toast" class="toast hidden"></div><script src="/app.js" defer></script></body></html>

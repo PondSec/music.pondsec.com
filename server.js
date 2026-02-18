@@ -24,9 +24,7 @@ const STATIC_PAGES = {
   '/biography': 'biography.html',
   '/discography': 'discography.html',
   '/events': 'events.html',
-  '/news': 'news.html',
-  '/community': 'community.html',
-  '/admin': 'admin.html'
+  '/news': 'news.html'
 };
 let spotifyCacheExpiresAt = 0;
 
@@ -200,7 +198,8 @@ function normalizeTrack(track, album) {
     explicit: track.contentRating?.label === 'EXPLICIT',
     spotifyUrl: `https://open.spotify.com/track/${trackId}`,
     previewUrl: track.previews?.audioPreviews?.items?.[0]?.url || null,
-    albumName: album.name
+    albumName: album.name,
+    albumReleaseDate: album.releaseDate || null
   };
 }
 
@@ -217,10 +216,36 @@ async function fetchAlbumTracks(album) {
   };
 }
 
+function extractSpotifyEvents(state) {
+  const concertsEntity = state?.entities?.items?.[`spotify:artist:${ARTIST_ID}:concerts`];
+  const concerts = concertsEntity?.concerts?.concerts?.items || [];
+
+  return concerts
+    .map((event) => {
+      const location = [event?.venue?.name, event?.venue?.location?.city, event?.venue?.location?.country]
+        .filter(Boolean)
+        .join(', ');
+
+      return {
+        id: `spotify-event-${event?.id || crypto.randomUUID()}`,
+        source: 'spotify',
+        title: event?.title || event?.displayName || 'Live Event',
+        date: event?.date || event?.dateTime || null,
+        location,
+        description: event?.summary || event?.description || '',
+        ticketUrl: event?.uri || event?.url || null
+      };
+    })
+    .filter((event) => event.date);
+}
+
 async function fetchSpotifyData() {
   if (spotifyCache && Date.now() < spotifyCacheExpiresAt) return spotifyCache;
 
-  const artistState = await fetchSpotifyInitialState(`/artist/${ARTIST_ID}`);
+  const [artistState, concertsState] = await Promise.all([
+    fetchSpotifyInitialState(`/artist/${ARTIST_ID}`),
+    fetchSpotifyInitialState(`/artist/${ARTIST_ID}/concerts`).catch(() => null)
+  ]);
   const artistEntity = extractArtistEntity(artistState);
   if (!artistEntity) throw new Error('Artist data could not be extracted from Spotify page.');
 
@@ -248,6 +273,7 @@ async function fetchSpotifyData() {
     },
     topTracks: allTracks,
     albums: albumsWithCounts,
+    events: concertsState ? extractSpotifyEvents(concertsState) : [],
     fetchedAt: new Date().toISOString()
   };
 
@@ -255,21 +281,88 @@ async function fetchSpotifyData() {
   return spotifyCache;
 }
 
+
+function buildAutomaticNews({ releases, events, topTracks }) {
+  const items = [];
+
+  const latestRelease = [...(releases || [])]
+    .filter((release) => release?.releaseDate)
+    .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))[0];
+  if (latestRelease) {
+    items.push({
+      id: `auto-release-${latestRelease.id || latestRelease.name}`,
+      source: 'auto-release',
+      title: `Neuer Release: ${latestRelease.name}`,
+      content: `${latestRelease.name} ist jetzt live auf Spotify.`,
+      createdAt: latestRelease.releaseDate,
+      pinned: false
+    });
+  }
+
+  const nextEvent = [...(events || [])]
+    .filter((event) => event?.date && new Date(event.date).getTime() >= Date.now())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+  if (nextEvent) {
+    items.push({
+      id: `auto-event-${nextEvent.id || nextEvent.title}`,
+      source: 'auto-event',
+      title: `Nächstes Live-Date: ${nextEvent.title}`,
+      content: `${nextEvent.location || 'Neue Location folgt'} · ${new Date(nextEvent.date).toLocaleDateString('de-DE')}`,
+      createdAt: nextEvent.date,
+      pinned: false
+    });
+  }
+
+  const focusTrack = (topTracks || [])[0];
+  if (focusTrack) {
+    items.push({
+      id: `auto-track-${focusTrack.id}`,
+      source: 'auto-track',
+      title: `Track im Fokus: ${focusTrack.name}`,
+      content: `${focusTrack.name} ist einer der aktuell wichtigsten Songs im Profil.`,
+      createdAt: focusTrack.albumReleaseDate || new Date().toISOString(),
+      pinned: false
+    });
+  }
+
+  items.push({
+    id: 'auto-social-instagram',
+    source: 'auto-social',
+    title: 'Social Update bereit',
+    content: `Neue Posts findest du direkt auf Instagram: @404am.music`,
+    createdAt: new Date().toISOString(),
+    pinned: false,
+    link: 'https://www.instagram.com/404am.music'
+  });
+
+  return items
+    .filter((item) => item.createdAt)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
 app.get('/api/public-data', async (req, res) => {
   try {
     const [spotifyData, store] = await Promise.all([fetchSpotifyData(), readStore()]);
     const manualReleases = [...store.customReleases].sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
-    const events = [...store.events].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
-    const announcements = [...store.announcements].sort((a, b) => {
+    const manualEvents = [...store.events].map((event) => ({ ...event, source: 'manual' }));
+    const events = [...(spotifyData.events || []), ...manualEvents].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const releases = [...manualReleases, ...spotifyData.albums];
+    const automaticNews = buildAutomaticNews({
+      releases,
+      events,
+      topTracks: spotifyData.topTracks
+    });
+    const announcements = [...store.announcements, ...automaticNews].sort((a, b) => {
       if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
 
     res.json({
       ...spotifyData,
-      releases: [...manualReleases, ...spotifyData.albums],
+      releases,
       events,
-      announcements
+      announcements,
+      automaticNews
     });
   } catch (error) {
     console.error(error);
@@ -384,6 +477,10 @@ app.post('/api/admin/announcements', requireAdmin, async (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get(['/community', '/admin'], (req, res) => {
+  res.redirect('/');
+});
 
 Object.entries(STATIC_PAGES).forEach(([route, file]) => {
   app.get(route, (req, res) => {
